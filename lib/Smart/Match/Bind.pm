@@ -6,13 +6,13 @@ use strict;
 use warnings;
 
 use Carp qw(croak);
-use Smart::Match qw(match);
+use Smart::Match qw(match array all);
 
 use namespace::clean;
 
 use Sub::Exporter -setup => {
 	exports => [qw/
-		binding let
+		binding let leta
     /],
 };
 
@@ -32,7 +32,12 @@ sub binding ($) {
         if ( $ret ) {
             while ( @bindings ) {
                 my ( $var, $match ) = splice @bindings, 0, 2;
-                $$var = $match;
+
+                if ( ref($var) eq 'ARRAY' ) {
+                    @$var = @$match;
+                } else {
+                    $$var = $match;
+                }
             }
         };
 
@@ -40,9 +45,8 @@ sub binding ($) {
     }
 }
 
-sub let ($$) {
-    my $binding = \$_[0];
-    my $match = $_[1];
+sub _let {
+    my ( $binding, $match ) = @_;
 
     match {
         croak "let() expression evaluated outside of binding context" unless $in_binding;
@@ -56,6 +60,9 @@ sub let ($$) {
         return $ret;
     }
 }
+
+sub let (\$$) { _let(@_) }
+sub leta (\@$) { _let($_[0], all(array(), $_[1])) }
 
 __PACKAGE__;
 

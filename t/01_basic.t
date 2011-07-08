@@ -10,7 +10,7 @@ use Test::Exception;
 
 use Smart::Match qw(:all);
 
-use ok 'Smart::Match::Bind', qw(let binding);
+use ok 'Smart::Match::Bind', qw(:all);
 
 my @results;
 
@@ -39,6 +39,12 @@ is_deeply(
     ],
     "all bindings processed correctly",
 );
+
+ok( [qw(foo bar)] ~~ binding( leta( my @array, true ) ), "let array match" );
+is_deeply( \@array, [qw(foo bar)], "array filled" );
+
+ok( not( [qw(foo bar)] ~~ binding( leta( my @array2, false ) ) ), "let array non-match" );
+is_deeply( \@array2, [], "no binding" );
 
 throws_ok {
     "foo" ~~ let(my $x, qr/./);
